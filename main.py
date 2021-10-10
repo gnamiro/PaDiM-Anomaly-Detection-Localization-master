@@ -183,7 +183,7 @@ def main():
         
         # calculate image-level ROC AUC score
         img_scores = scores.reshape(scores.shape[0], -1).max(axis=1)
-        gt_list = np.asarray(gt_list)
+        gt_list = np.asarray(gt_list)[:200]
         fpr, tpr, _ = roc_curve(gt_list, img_scores)
         img_roc_auc = roc_auc_score(gt_list, img_scores)
         total_roc_auc.append(img_roc_auc)
@@ -284,6 +284,11 @@ def denormalization(x):
 
 
 def embedding_concat(x, y):
+    indices = torch.randperm(x.size(0))[:200]
+
+    x = x[indices]
+    y = y[indices]
+    print(x.size(), y.size())
     B, C1, H1, W1 = x.size()
     _, C2, H2, W2 = y.size()
     s = int(H1 / H2)
