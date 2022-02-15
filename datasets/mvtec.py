@@ -10,11 +10,13 @@ from torchvision import transforms as T
 
 
 # URL = 'ftp://guest:GU.205dldo@ftp.softronics.ch/mvtec_anomaly_detection/mvtec_anomaly_detection.tar.xz'
-CLASS_NAMES = ['diabetic_retinopathy_detection']
+CLASS_NAMES = ['carpet', 'grid',
+              'leather', 'metal_nut',
+               'tile', 'wood', 'zipper']
 
 
 class MVTecDataset(Dataset):
-    def __init__(self, dataset_path='./datasets', class_name='diabetic_retinopathy_detection', is_train=True,
+    def __init__(self, dataset_path='./dataset', class_name='carpet', is_train=True,
                  resize=256, cropsize=224):
         assert class_name in CLASS_NAMES, 'class_name: {}, should be in {}'.format(class_name, CLASS_NAMES)
         self.dataset_path = dataset_path
@@ -46,11 +48,11 @@ class MVTecDataset(Dataset):
         x = Image.open(x).convert('RGB')
         x = self.transform_x(x)
 
-        # if y == 0:
-        mask = torch.zeros([1, self.cropsize, self.cropsize])
-        # else:
-        #     mask = Image.open(mask)
-        #     mask = self.transform_mask(mask)
+        if y == 0:
+            mask = torch.zeros([1, self.cropsize, self.cropsize])
+        else:
+            mask = Image.open(mask)
+            mask = self.transform_mask(mask)
 
         return x, y, mask
 
@@ -73,11 +75,11 @@ class MVTecDataset(Dataset):
                 continue
             img_fpath_list = sorted([os.path.join(img_type_dir, f)
                                      for f in os.listdir(img_type_dir)
-                                     if f.endswith('.jpeg')])
+                                     if f.endswith('.png')])
             x.extend(img_fpath_list)
 
             # load gt labels
-            if img_type == '0':
+            if img_type == 'good':
                 y.extend([0] * len(img_fpath_list))
                 mask.extend([None] * len(img_fpath_list))
             else:
@@ -87,7 +89,7 @@ class MVTecDataset(Dataset):
                 gt_fpath_list = [os.path.join(gt_type_dir, img_fname + '_mask.png')
                                  for img_fname in img_fname_list]
                 mask.extend(gt_fpath_list)
-        # print("*************____>>", len(x))
+
         assert len(x) == len(y), 'number of x and y should be same'
 
         return list(x), list(y), list(mask)

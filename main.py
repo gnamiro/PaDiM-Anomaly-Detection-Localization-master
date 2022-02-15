@@ -28,13 +28,12 @@ import datasets.mvtec as mvtec
 use_cuda = torch.cuda.is_available()
 device = torch.device('cuda' if use_cuda else 'cpu')
 
-RAM_LIMITER = 150
 
 def parse_args():
     parser = argparse.ArgumentParser('PaDiM')
-    parser.add_argument('--data_path', type=str, default='./datasets')
-    parser.add_argument('--save_path', type=str, default='./retinal_result')
-    parser.add_argument('--arch', type=str, choices=['resnet18', 'wide_resnet50_2'], default='wide_resnet50_2')
+    parser.add_argument('--data_path', type=str, default='./dataset')
+    parser.add_argument('--save_path', type=str, default='./mvtec_result')
+    parser.add_argument('--arch', type=str, choices=['resnet18', 'wide_resnet50_2'], default='resnet18')
     return parser.parse_args()
 
 
@@ -185,8 +184,6 @@ def main():
         # calculate image-level ROC AUC score
         img_scores = scores.reshape(scores.shape[0], -1).max(axis=1)
         gt_list = np.asarray(gt_list)
-        index = np.random.choice(gt_list.shape[0], RAM_LIMITER, replace=False)  
-        gt_list = gt_list[index]
         fpr, tpr, _ = roc_curve(gt_list, img_scores)
         img_roc_auc = roc_auc_score(gt_list, img_scores)
         total_roc_auc.append(img_roc_auc)
@@ -194,7 +191,7 @@ def main():
         fig_img_rocauc.plot(fpr, tpr, label='%s img_ROCAUC: %.3f' % (class_name, img_roc_auc))
         
         # get optimal threshold
-        gt_mask = np.asarray(gt_mask_list)[index]
+        gt_mask = np.asarray(gt_mask_list)
         precision, recall, thresholds = precision_recall_curve(gt_mask.flatten(), scores.flatten())
         a = 2 * precision * recall
         b = precision + recall
@@ -287,11 +284,6 @@ def denormalization(x):
 
 
 def embedding_concat(x, y):
-    indices = torch.randperm(x.size(0))[:RAM_LIMITER]
-
-    x = x[indices]
-    y = y[indices]
-    print(x.size(), y.size())
     B, C1, H1, W1 = x.size()
     _, C2, H2, W2 = y.size()
     s = int(H1 / H2)
