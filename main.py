@@ -31,8 +31,8 @@ device = torch.device('cuda' if use_cuda else 'cpu')
 
 def parse_args():
     parser = argparse.ArgumentParser('PaDiM')
-    parser.add_argument('--data_path', type=str, default='./dataset')
-    parser.add_argument('--save_path', type=str, default='./mvtec_result')
+    parser.add_argument('--data_path', type=str, default='./datasets')
+    parser.add_argument('--save_path', type=str, default='./fundus_result')
     parser.add_argument('--arch', type=str, choices=['resnet18', 'wide_resnet50_2'], default='resnet18')
     return parser.parse_args()
 

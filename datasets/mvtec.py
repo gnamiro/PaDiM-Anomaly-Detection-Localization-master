@@ -10,13 +10,11 @@ from torchvision import transforms as T
 
 
 # URL = 'ftp://guest:GU.205dldo@ftp.softronics.ch/mvtec_anomaly_detection/mvtec_anomaly_detection.tar.xz'
-CLASS_NAMES = ['carpet', 'grid',
-              'leather', 'metal_nut',
-               'tile', 'wood', 'zipper']
+CLASS_NAMES = ['fundus']
 
 
 class MVTecDataset(Dataset):
-    def __init__(self, dataset_path='./dataset', class_name='carpet', is_train=True,
+    def __init__(self, dataset_path='./datasets', class_name='fundus', is_train=True,
                  resize=256, cropsize=224):
         assert class_name in CLASS_NAMES, 'class_name: {}, should be in {}'.format(class_name, CLASS_NAMES)
         self.dataset_path = dataset_path
@@ -48,11 +46,11 @@ class MVTecDataset(Dataset):
         x = Image.open(x).convert('RGB')
         x = self.transform_x(x)
 
-        if y == 0:
-            mask = torch.zeros([1, self.cropsize, self.cropsize])
-        else:
-            mask = Image.open(mask)
-            mask = self.transform_mask(mask)
+        # if y == 0:
+        mask = torch.zeros([1, self.cropsize, self.cropsize])
+        # else:
+        #     mask = Image.open(mask)
+        #     mask = self.transform_mask(mask)
 
         return x, y, mask
 
@@ -75,7 +73,7 @@ class MVTecDataset(Dataset):
                 continue
             img_fpath_list = sorted([os.path.join(img_type_dir, f)
                                      for f in os.listdir(img_type_dir)
-                                     if f.endswith('.png')])
+                                     if f.endswith('.jpg')])
             x.extend(img_fpath_list)
 
             # load gt labels
