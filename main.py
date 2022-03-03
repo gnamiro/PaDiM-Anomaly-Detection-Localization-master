@@ -198,13 +198,13 @@ def main():
         f1 = np.divide(a, b, out=np.zeros_like(a), where=b != 0)
         threshold = thresholds[np.argmax(f1)]
 
-        # calculate per-pixel level ROCAUC
-        fpr, tpr, _ = roc_curve(gt_mask.flatten(), scores.flatten())
-        per_pixel_rocauc = roc_auc_score(gt_mask.flatten(), scores.flatten())
-        total_pixel_roc_auc.append(per_pixel_rocauc)
-        print('pixel ROCAUC: %.3f' % (per_pixel_rocauc))
+        # # calculate per-pixel level ROCAUC
+        # fpr, tpr, _ = roc_curve(gt_mask.flatten(), scores.flatten())
+        # per_pixel_rocauc = roc_auc_score(gt_mask.flatten(), scores.flatten())
+        # total_pixel_roc_auc.append(per_pixel_rocauc)
+        # print('pixel ROCAUC: %.3f' % (per_pixel_rocauc))
 
-        fig_pixel_rocauc.plot(fpr, tpr, label='%s ROCAUC: %.3f' % (class_name, per_pixel_rocauc))
+        # fig_pixel_rocauc.plot(fpr, tpr, label='%s ROCAUC: %.3f' % (class_name, per_pixel_rocauc))
         save_dir = args.save_path + '/' + f'pictures_{args.arch}'
         os.makedirs(save_dir, exist_ok=True)
         plot_fig(test_imgs, scores, gt_mask_list, threshold, save_dir, class_name)
@@ -213,9 +213,9 @@ def main():
     fig_img_rocauc.title.set_text('Average image ROCAUC: %.3f' % np.mean(total_roc_auc))
     fig_img_rocauc.legend(loc="lower right")
 
-    print('Average pixel ROCUAC: %.3f' % np.mean(total_pixel_roc_auc))
-    fig_pixel_rocauc.title.set_text('Average pixel ROCAUC: %.3f' % np.mean(total_pixel_roc_auc))
-    fig_pixel_rocauc.legend(loc="lower right")
+    # print('Average pixel ROCUAC: %.3f' % np.mean(total_pixel_roc_auc))
+    # fig_pixel_rocauc.title.set_text('Average pixel ROCAUC: %.3f' % np.mean(total_pixel_roc_auc))
+    # fig_pixel_rocauc.legend(loc="lower right")
 
     fig.tight_layout()
     fig.savefig(os.path.join(args.save_path, 'roc_curve.png'), dpi=100)
@@ -228,7 +228,7 @@ def plot_fig(test_img, scores, gts, threshold, save_dir, class_name):
     for i in range(num):
         img = test_img[i]
         img = denormalization(img)
-        gt = gts[i].transpose(1, 2, 0).squeeze()
+        # gt = gts[i].transpose(1, 2, 0).squeeze()
         heat_map = scores[i] * 255
         mask = scores[i]
         mask[mask > threshold] = 1
@@ -245,7 +245,7 @@ def plot_fig(test_img, scores, gts, threshold, save_dir, class_name):
             ax_i.axes.yaxis.set_visible(False)
         ax_img[0].imshow(img)
         ax_img[0].title.set_text('Image')
-        ax_img[1].imshow(gt, cmap='gray')
+        # ax_img[1].imshow(gt, cmap='gray')
         ax_img[1].title.set_text('GroundTruth')
         ax = ax_img[2].imshow(heat_map, cmap='jet', norm=norm)
         ax_img[2].imshow(img, cmap='gray', interpolation='none')
