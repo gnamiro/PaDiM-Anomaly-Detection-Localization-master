@@ -15,7 +15,7 @@ CLASS_NAMES = ['fundus']
 
 class MVTecDataset(Dataset):
     def __init__(self, dataset_path='./datasets', class_name='fundus', is_train=True,
-                 resize=256, cropsize=224):
+                 resize=224, cropsize=512):
         assert class_name in CLASS_NAMES, 'class_name: {}, should be in {}'.format(class_name, CLASS_NAMES)
         self.dataset_path = dataset_path
         self.class_name = class_name
@@ -31,13 +31,13 @@ class MVTecDataset(Dataset):
         self.x, self.y, self.mask = self.load_dataset_folder()
 
         # set transforms
-        self.transform_x = T.Compose([T.Resize(resize, Image.ANTIALIAS),
-                                      T.CenterCrop(cropsize),
+        self.transform_x = T.Compose([T.CenterCrop(cropsize),
+                                      T.Resize(resize, Image.ANTIALIAS),
                                       T.ToTensor(),
                                       T.Normalize(mean=[0.485, 0.456, 0.406],
                                                   std=[0.229, 0.224, 0.225])])
-        self.transform_mask = T.Compose([T.Resize(resize, Image.NEAREST),
-                                         T.CenterCrop(cropsize),
+        self.transform_mask = T.Compose([ T.CenterCrop(cropsize),
+                                        T.Resize(resize, Image.NEAREST),
                                          T.ToTensor()])
 
     def __getitem__(self, idx):
