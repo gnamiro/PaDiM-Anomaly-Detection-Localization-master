@@ -37,6 +37,10 @@ def parse_args():
     return parser.parse_args()
 
 
+_layer1 = 'layer2'
+_layer2 = 'layer3'
+_layer3 = 'layer3'
+
 def main():
 
     args = parse_args()
@@ -44,7 +48,7 @@ def main():
     # load model
     if args.arch == 'resnet18':
         model = resnet18(pretrained=True, progress=True)
-        t_d = 448
+        t_d = 384
         d = 100
     elif args.arch == 'wide_resnet50_2':
         model = wide_resnet50_2(pretrained=True, progress=True)
@@ -58,16 +62,17 @@ def main():
         torch.cuda.manual_seed_all(1024)
 
     idx = torch.tensor(sample(range(0, t_d), d))
-
+    # print(f'--> {idx.shape}')
     # set model's intermediate outputs
     outputs = []
 
     def hook(module, input, output):
         outputs.append(output)
 
-    model.layer1[-1].register_forward_hook(hook)
     model.layer2[-1].register_forward_hook(hook)
     model.layer3[-1].register_forward_hook(hook)
+    # model.layer3[-1].register_forward_hook(hook)
+
 
     os.makedirs(os.path.join(args.save_path, 'temp_%s' % args.arch), exist_ok=True)
     fig, ax = plt.subplots(1, 2, figsize=(20, 10))
@@ -84,8 +89,11 @@ def main():
         test_dataset = mvtec.MVTecDataset(args.data_path, class_name=class_name, is_train=False)
         test_dataloader = DataLoader(test_dataset, batch_size=32, pin_memory=True)
 
-        train_outputs = OrderedDict([('layer1', []), ('layer2', []), ('layer3', [])])
-        test_outputs = OrderedDict([('layer1', []), ('layer2', []), ('layer3', [])])
+        train_outputs = OrderedDict([(_layer1, []), (_layer2, [])])
+        test_outputs = OrderedDict([(_layer1, []), (_layer2, [])])
+
+        # train_outputs = OrderedDict([('layer2', []), ('layer3', []), ('layer4', [])])
+        # test_outputs = OrderedDict([('layer2', []), ('layer3', []), ('layer4', [])])
 
         # extract train set features
         train_feature_filepath = os.path.join(args.save_path, 'temp_%s' % args.arch, 'train_%s.pkl' % class_name)
@@ -103,10 +111,10 @@ def main():
                 train_outputs[k] = torch.cat(v, 0)
 
             # Embedding concat
-            embedding_vectors = train_outputs['layer1']
-            for layer_name in ['layer2', 'layer3']:
+            embedding_vectors = train_outputs[_layer1]
+            for layer_name in [_layer2]:
                 embedding_vectors = embedding_concat(embedding_vectors, train_outputs[layer_name])
-
+            print(f'--> {embedding_vectors.shape}')
             # randomly select d dimension
             embedding_vectors = torch.index_select(embedding_vectors, 1, idx)
             # calculate multivariate Gaussian distribution
@@ -148,8 +156,8 @@ def main():
             test_outputs[k] = torch.cat(v, 0)
         
         # Embedding concat
-        embedding_vectors = test_outputs['layer1']
-        for layer_name in ['layer2', 'layer3']:
+        embedding_vectors = test_outputs[_layer1]
+        for layer_name in [_layer2]:
             embedding_vectors = embedding_concat(embedding_vectors, test_outputs[layer_name])
 
         # randomly select d dimension
