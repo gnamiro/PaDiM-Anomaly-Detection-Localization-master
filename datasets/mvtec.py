@@ -47,7 +47,7 @@ class MVTecDataset(Dataset):
         x = self.transform_x(x)
 
         # if y == 0:
-        mask = torch.zeros([1, self.cropsize, self.cropsize])
+        mask = torch.zeros([1, self.resize, self.resize])
         # else:
         #     mask = Image.open(mask)
         #     mask = self.transform_mask(mask)
